@@ -1,10 +1,15 @@
-import json
+import os
 import re
+import json
 import logging
-import requests
+from urllib import request, parse
 import traceback
 
 log = logging.getLogger(__name__)
+
+SLACK_TAGGED_USERS_IDS = os.environ["SLACK_TAGGED_USERS_IDS"]
+SLACK_CHANNEL_WEBHOOK_URL = os.environ["SLACK_CHANNEL_WEBHOOK_URL"]
+
 
 emoji_map = {
     "DEBUG": ":bug:",
@@ -147,8 +152,7 @@ def return_special_mentions():
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": ":military_helmet: *Special Mentions:* \
-                            <@UJ7EEGX88>, <@UHW04RBGT>, <@U01SAMHA2LR>",
+                    "text": f":military_helmet: *Special Mentions:* {SLACK_TAGGED_USERS_IDS}",
                 }
             ],
         },
@@ -171,9 +175,7 @@ def return_error_alert():
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": " :military_helmet: *Special Mentions:* <@U02CS9QL0JK> \
-                            , <@U02U2KQ7N3Y>, <@U030JAJF5RV>, <@U02SDCAHJH3>, \
-                            <@UHW04RBGT>",
+                    "text": f" :military_helmet: *Special Mentions:* {SLACK_TAGGED_USERS_IDS}",
                 }
             ],
         },
@@ -213,13 +215,29 @@ def tag_message(message, message_blocks, log_group):
     return message_blocks
 
 
-def post_message(url, message):
+def post_message(raw_message):
     """Post a message to slack using a webhook url."""
-    response = requests.post(
-        url,
-        json=message,
-        headers={"Content-Type": "application/json"},
-        params={"unfurl_media": "false", "unfurl_links": "false"},
-    )
-    log.info("Sent message: %s\nUrl: %s\nResponse: %s", message, url, response.text)
-    return response.status_code == 200
+
+    message = raw_message  # TODO - in that order the raw_message is parsed, which is the function called?
+
+    json_body = json.dumps(message).encode("utf-8")
+    query_params = parse.urlencode({"unfurl_media": "false", "unfurl_links": "false"})
+    headers = {"Content-Type": "application/json"}
+    url = f"{SLACK_CHANNEL_WEBHOOK_URL}?{query_params}"
+
+    with request.urlopen(
+        request.Request(url=url, data=json_body, headers=headers)
+    ) as response:
+        result = response.read().decode("utf-8")
+
+    log.info(f"Sent message: {message}\nUrl: {url}\nResponse: {result}")
+
+
+if __name__ == "__main__":
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument("logoutput")
+    args = parser.parse_args()
+
+    post_message(args.logoutput)

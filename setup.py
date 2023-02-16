@@ -6,9 +6,9 @@ with open("requirements.txt", "r") as f:
     REQUIREMENTS = f.readlines()
 
 setup(
-    name="slack-webhoook-bot",
+    name="licenseware-logblocks",
     version="0.0.1",
-    url="https://github.com/licenseware/slack-webhook-bot",
+    url="https://github.com/licenseware/licenseware-logblocks",
     author="Licenseware",
     author_email="contact@licenseware.com",
     description="Post formated log message to slack",
