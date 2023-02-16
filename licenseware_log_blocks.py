@@ -215,10 +215,8 @@ def tag_message(message, message_blocks, log_group):
     return message_blocks
 
 
-def post_message(raw_message):
+def post_message(message):
     """Post a message to slack using a webhook url."""
-
-    message = raw_message  # TODO - in that order the raw_message is parsed, which is the function called?
 
     json_body = json.dumps(message).encode("utf-8")
     query_params = parse.urlencode({"unfurl_media": "false", "unfurl_links": "false"})
@@ -237,7 +235,7 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument("logoutput")
+    parser.add_argument("event")
     args = parser.parse_args()
 
-    post_message(args.logoutput)
+    post_message(compose_message_block(args.event))
