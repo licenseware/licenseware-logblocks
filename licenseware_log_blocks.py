@@ -6,6 +6,7 @@ from urllib import request, parse
 import traceback
 
 log = logging.getLogger(__name__)
+log.setLevel(level=logging.INFO)
 
 SLACK_TAGGED_USERS_IDS = os.environ["SLACK_TAGGED_USERS_IDS"]
 SLACK_CHANNEL_WEBHOOK_URL = os.environ["SLACK_CHANNEL_WEBHOOK_URL"]
@@ -20,17 +21,27 @@ emoji_map = {
 }
 
 
-def compose_message_block(event: dict) -> json:
+def compose_message_block(event: str) -> json:
     """
     Compose a message block for Slack.
     """
+
+    print(f"compose_message_block: {event}")
+
     message_block = {"type": "section", "text": {"type": "mrkdwn", "text": ""}}
+    empty_message = re.findall(r"^\d{2}:\d{2}:\d{2}\s+web\.\d{1}\s+\|\s*$", event)
+    if empty_message:
+        return
+
+    message_block = parse_message(event["logGroup"], log_event["message"])
+
     for log_event in event["logEvents"]:
         empty_message = re.findall(
             r"^\d{2}:\d{2}:\d{2}\s+web\.\d{1}\s+\|\s*$", log_event["message"]
         )
         if empty_message:
             continue
+        # TODO - how is the event a dict? What are the origins of 'logGroup', 'message' keys?
         message_block = parse_message(event["logGroup"], log_event["message"])
         yield json.dumps(message_block, default=str)
 
@@ -232,10 +243,10 @@ def post_message(message):
 
 
 if __name__ == "__main__":
-    from argparse import ArgumentParser
+    import sys
 
-    parser = ArgumentParser()
-    parser.add_argument("event")
-    args = parser.parse_args()
-
-    post_message(compose_message_block(args.event))
+    try:
+        slack_message = compose_message_block(sys.stdin.readline())
+        # post_message(slack_message)
+    except Exception as err:
+        log.error(err)
