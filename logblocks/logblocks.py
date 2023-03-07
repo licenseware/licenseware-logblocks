@@ -10,7 +10,13 @@ from urllib import parse, request
 parser = argparse.ArgumentParser(
     description="Post formatted log messages to slack, mentioning users when error ocurrs"
 )
-parser.add_argument("rawinput", type=str, help="The raw log message")
+parser.add_argument(
+    "rawinput",
+    type=str,
+    help="The raw log message",
+    nargs="+",
+    action="extend",
+)
 parser.add_argument(
     "-l", "--loglevel", type=str, help="The log level (default: INFO)", default="INFO"
 )
@@ -146,7 +152,7 @@ def post_message(message, webhook_url):
 
 def main():
     parsed = parser.parse_args(sys.argv[1:])
-    rawinput = parsed.rawinput
+    rawinput = " ".join(parsed.rawinput)
     loglevel = parsed.loglevel
     webhook_url = parsed.url or SLACK_CHANNEL_WEBHOOK_URL
     mentions = parsed.mentions or SLACK_TAGGED_USERS_IDS
