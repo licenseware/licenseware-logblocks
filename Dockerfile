@@ -24,7 +24,8 @@ FROM ${BASE_IMAGE_REPO}:${BASE_IMAGE_TAG} AS base
 COPY --from=binaries /usr/local/bin/dumb-init /usr/local/bin/dumb-init
 COPY --from=binaries /usr/local/bin/logcli /usr/local/bin/logcli
 
-RUN pip install -U pip 'licenseware-logblocks<1'
-
+RUN pip install -U pip 'licenseware-logblocks<1' && \
+    apk add --update coreutils && \
+    rm -rf /var/cache/apk/*
 
 ENTRYPOINT ["dumb-init", "--", "logblocks"]
