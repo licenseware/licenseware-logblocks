@@ -18,7 +18,6 @@ jobs:
           PYTHON_VERSION: "3.11"
         uses: actions/setup-python@v4
         with:
-          cache: pip
           python-version: ${{ env.PYTHON_VERSION }}
       - env:
           PACKAGE_VERSION: ${{ inputs.pypi-package-version }}
