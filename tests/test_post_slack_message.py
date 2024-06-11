@@ -1,6 +1,5 @@
 import os
 
-
 from logblocks.logblocks import get_slack_message, post_message
 
 
