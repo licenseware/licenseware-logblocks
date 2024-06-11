@@ -11,7 +11,7 @@ on:
       - "*"
 
 env:
-  IMAGE_REPOSITORY: ${{ github.repository }}
+  IMAGE_REPOSITORY: licenseware/logblocks
   IMAGE_REGISTRY: ghcr.io
   PYTHON_VERSION: "3.12"
 
