@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 with open("README.md", "r") as fd:
     LONG_DESCRIPTION = fd.read()
 
-PACKAGE_VERSION = os.environ.get("PACKAGE_VERSION", "0.0.1")
+PACKAGE_VERSION = os.getenv("PACKAGE_VERSION", "0.0.1")
 
 setup(
     name="licenseware-logblocks",
