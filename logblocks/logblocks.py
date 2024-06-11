@@ -1,11 +1,13 @@
 import argparse
-import json
 import logging
 import os
 import re
 import sys
 from enum import Enum
-from urllib import parse, request
+
+from slack_sdk import WebhookClient
+from slack_sdk.models.blocks import ContextBlock, DividerBlock, HeaderBlock
+from slack_sdk.models.blocks.basic_components import MarkdownTextObject, PlainTextObject
 
 parser = argparse.ArgumentParser(
     description="Post formatted log messages to slack, mentioning users when error ocurrs"
@@ -55,52 +57,33 @@ class Emoji(str, Enum):
 def get_formated_slack_message(
     emoji: Emoji, log_level: str, rawinput: str, mentions: str
 ):
-    msg = {
-        "blocks": [
-            {"type": "divider"},
-        ]
-    }
-
     special_mentions = emoji == Emoji.ERROR
 
     msg_title = (
         f"{emoji} {log_level} {'please investigate!' if special_mentions else ''}"
     )
 
-    msg_header = {
-        "type": "header",
-        "text": {
-            "type": "plain_text",
-            "text": msg_title,
-            "emoji": True,
-        },
-    }
+    header = HeaderBlock(
+        block_id="hd-id1", text=PlainTextObject(text=msg_title, emoji=True)
+    )
 
-    msg_content = {
-        "type": "context",
-        "elements": [
-            {
-                "type": "mrkdwn",
-                "text": f"```{rawinput}```",
-            }
-        ],
-    }
-
-    msg["blocks"].extend([msg_header, msg_content])
+    content = ContextBlock(
+        block_id="cn-id1", elements=[MarkdownTextObject(text=f"```{rawinput}```")]
+    )
+    blocks = [DividerBlock(block_id="d1"), header, content]
 
     if special_mentions:
-        msg_mentions = {
-            "type": "context",
-            "elements": [
-                {
-                    "type": "mrkdwn",
-                    "text": f":military_helmet: *Special Mentions:* {mentions}",
-                }
+        mentions_block = ContextBlock(
+            block_id="cn-id2",
+            elements=[
+                MarkdownTextObject(
+                    text=f":military_helmet: *Special Mentions:* {mentions}"
+                )
             ],
-        }
-        msg["blocks"].extend([msg_mentions])
+        )
+        blocks.append(mentions_block)
 
-    return msg
+    return blocks
 
 
 def found_error(rawinput: str):
@@ -137,17 +120,16 @@ def get_slack_message(rawinput: str, mentions: str):
 def post_message(message, webhook_url):
     """Post a message to slack using a webhook url."""
 
-    json_body = json.dumps(message).encode("utf-8")
-    query_params = parse.urlencode({"unfurl_media": "false", "unfurl_links": "false"})
     headers = {"Content-Type": "application/json"}
-    url = f"{webhook_url}?{query_params}"
 
-    with request.urlopen(
-        request.Request(url=url, data=json_body, headers=headers)
-    ) as response:
-        result = response.read().decode("utf-8")
+    webhook = WebhookClient(url=webhook_url)
+    response = webhook.send(blocks=message, unfurl_links=False, unfurl_media=False)
 
-    logger.info(f"Sent message: {message}\nUrl: {url}\nResponse: {result}")
+    logger.info(
+        f"Sent message: {message}\nUrl: {webhook_url}\nResponse: {response.body}"
+    )
+
+    return response
 
 
 def main():

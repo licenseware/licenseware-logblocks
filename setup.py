@@ -1,5 +1,3 @@
-import os
-
 from setuptools import find_packages, setup
 
 # python3 setup.py bdist_wheel sdist
@@ -7,7 +5,7 @@ from setuptools import find_packages, setup
 with open("README.md", "r") as fd:
     LONG_DESCRIPTION = fd.read()
 
-PACKAGE_VERSION = os.environ["PACKAGE_VERSION"]
+PACKAGE_VERSION = 1.0
 
 setup(
     name="licenseware-logblocks",
@@ -20,4 +18,5 @@ setup(
     long_description_content_type="text/markdown",
     entry_points={"console_scripts": ["logblocks = logblocks.logblocks:main"]},
     packages=find_packages(include=["logblocks", "logblocks.*"]),
+    install_requires=["slack_sdk", "pytest"],
 )
