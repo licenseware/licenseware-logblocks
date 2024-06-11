@@ -20,22 +20,6 @@ env:
   PYTHON_VERSION: "3.12"
 
 jobs:
-  publish-pypi:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Prepare
-        run: pip install wheel && python setup.py sdist bdist_wheel
-      - name: Publish PyPi
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-
   build-docker-pr:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -182,7 +166,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REPOSITORY }}:${{ github.ref_name }}
       - name: Docker Scout - cves
         uses: docker/scout-action@v1
         with:
@@ -199,3 +185,21 @@ jobs:
           if-no-files-found: warn
           name: scout-results
           path: sarif.output.json
+
+  publish-pypi:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - env:
+          PACKAGE_VERSION: ${{ github.ref_name }}
+        name: Prepare
+        run: pip install wheel && python setup.py sdist bdist_wheel
+      - name: Publish PyPi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
