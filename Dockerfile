@@ -1,7 +1,7 @@
 ARG DUMB_INIT_PATH=/usr/local/bin/dumb-init
 ARG LOGCLI_PATH=/usr/local/bin/logcli
 ARG BASE_IMAGE_REPO=python
-ARG BASE_IMAGE_TAG=3.12-alpine
+ARG BASE_IMAGE_TAG=3.13-alpine
 
 FROM curlimages/curl AS binaries
 
