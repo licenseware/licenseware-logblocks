@@ -70,7 +70,7 @@ jobs:
           summary: true
       - if: contains(github.event.pull_request.labels.*.name, 'check-cves')
         name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: scout-results
@@ -126,7 +126,7 @@ jobs:
           sarif-file: sarif.output.json
           summary: true
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: scout-results
@@ -180,7 +180,7 @@ jobs:
           sarif-file: sarif.output.json
           summary: true
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: scout-results
